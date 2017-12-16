@@ -62,16 +62,6 @@ class Entries(namedtuple('ListEntries', ['list_entries'])):
         return super(Entries, cls).__new__(cls, list_entries)
 
 
-class Meta(namedtuple('Meta', ['dict_attrs'])):
-    """
-    Representation of freeform metadata anywhere appropriate in a response.
-    """
-
-    __slots__ = ()
-
-    def __new__(cls, dict_attrs):
-        return super(Meta, cls).__new__(cls, dict_attrs)
-
 class Data(namedtuple('Data', ['either_list_entries_or_maybe_entry'])):
     """Representation of the top-level "data" section of a response."""
 
@@ -106,10 +96,51 @@ class Errors(namedtuple('Errors', ['list_errors'])):
         return super(Errors, cls).__new__(cls, list_errors)
 
 
+class Meta(namedtuple('Meta', ['dict_attrs'])):
+    """
+    Representation of freeform metadata anywhere appropriate in a response.
+    """
+
+    __slots__ = ()
+
+    def __new__(cls, dict_attrs):
+        return super(Meta, cls).__new__(cls, dict_attrs)
+
+
+class LinksPagination(namedtuple('LinksPagination', ['maybe_first',
+                                                     'maybe_last',
+                                                     'maybe_prev',
+                                                     'maybe_next'])):
+    """
+    Representation of pagination links anywhere appropriate in a response.
+    """
+
+    __slots__ = ()
+
+    def __new__(cls, maybe_first=None, maybe_last=None, maybe_prev=None,
+                maybe_next=None):
+        return super(LinksPagination, cls).__new__(cls, maybe_first,
+                                                   maybe_last, maybe_prev,
+                                                   maybe_next)
+
+
+class LinksTopLevel(namedtuple('LinksTopLevel', ['links_pagination',
+                                                 'maybe_self',
+                                                 'maybe_related'])):
+    """Representation of links in top-level of a response."""
+
+    __slots__ = ()
+
+    def __new__(cls, links_pagination, maybe_self=None, maybe_related=None):
+        return super(LinksTopLevel, cls).__new__(cls, links_pagination,
+                                                 maybe_self, maybe_related)
+
+
 class TopLevel(namedtuple('TopLevel', ['any_data_or_errors_or_meta',
                                        'maybe_either_data_or_errors',
                                        'maybe_meta', 'maybe_jsonapi',
-                                       'maybe_links', 'maybe_included'])):
+                                       'maybe_top_level_links',
+                                       'maybe_included'])):
     """
     Representation of the top level of a response.
 
@@ -125,27 +156,35 @@ class TopLevel(namedtuple('TopLevel', ['any_data_or_errors_or_meta',
 
     def __new__(cls, any_data_or_errors_or_meta,
                 maybe_either_data_or_errors=None, maybe_meta=None,
-                maybe_jsonapi=None, maybe_links=None, maybe_included=None):
+                maybe_jsonapi=None, maybe_top_level_links=None,
+                maybe_included=None):
         return super(TopLevel, cls).__new__(cls, any_data_or_errors_or_meta,
                                             maybe_either_data_or_errors,
                                             maybe_meta, maybe_jsonapi,
-                                            maybe_links, maybe_included)
+                                            maybe_top_level_links,
+                                            maybe_included)
 
 
-def mk_entries(obj):
-    list_entries = []
-
-    for obj_entry in obj:
-        list_entries.append(mk_entry(obj_entry))
-
-    return Entries(list_entries)
+def mk_meta(obj, config):
+    if obj:
+        return Meta(obj)
+    else:
+        return None
 
 
-def mk_entry(obj):
+def mk_resource_relationships(obj, config):
+    pass
+
+
+def mk_resource_links(obj, config):
+    pass
+
+
+def mk_entry(obj, config):
     if obj:
         r_type     = obj['type']
         r_id       = obj['id']
-        maybe_meta = mk_resource_meta(obj['meta']) if 'meta' in obj else None
+        maybe_meta = mk_meta(obj['meta'], config) if 'meta' in obj else None
 
         resource_id = ResourceId(r_type, r_id, maybe_meta)
 
@@ -154,10 +193,10 @@ def mk_entry(obj):
                 if 'attributes' in obj else None
 
             maybe_relationships = \
-                mk_resource_relationships(obj['relationships']) \
+                mk_resource_relationships(obj['relationships'], config) \
                     if 'relationships' in obj else None
 
-            maybe_links = mk_resource_links(obj['links']) \
+            maybe_links = mk_resource_links(obj['links'], config) \
                 if 'links' in obj else None
 
             resource = Resource(resource_id, maybe_dict_attrs,
@@ -170,35 +209,56 @@ def mk_entry(obj):
         return None
 
 
-def mk_meta(obj):
-    if obj:
-        return Meta(obj)
-    else:
-        return None
+def mk_entries(obj, config):
+    list_entries = []
+
+    for obj_entry in obj:
+        list_entries.append(mk_entry(obj_entry, config))
+
+    return Entries(list_entries)
 
 
-def mk_resource_relationships(obj):
+def mk_links_pagination(obj, config):
+    maybe_first    = obj.get(   'first', None)
+    maybe_last     = obj.get(    'last', None)
+    maybe_previous = obj.get('previous', None)
+    maybe_next     = obj.get(    'next', None)
+
+    return LinksPagination(maybe_first, maybe_last, maybe_previous, maybe_next)
+
+
+def mk_top_level_links(obj, config):
+    maybe_self    = obj.get(   'self', None)
+    maybe_related = obj.get('related', None)
+
+    return LinksTopLevel(mk_links_pagination(obj, config), maybe_self,
+                         maybe_related)
+
+
+def mk_top_level_jsonapi(obj, config):
     pass
 
 
-def mk_resource_links(obj):
+def mk_top_level_included(obj, config):
     pass
 
 
-def mk_top_level(obj):
+def mk_top_level(obj, config):
     if 'data' in obj and 'errors' in obj:
         raise RuntimeError('response cannot contain both data and errors')
 
     if 'data' not in obj and 'errors' not in obj and 'meta' not in obj:
         raise RuntimeError('response must contain data, errors, or meta (1)')
 
-    maybe_data = mk_data(obj['data']) if 'data' in obj else None
-    maybe_errors = mk_errors(obj['errors']) \
+    maybe_data = mk_data(obj['data'], config) if 'data' in obj else None
+    maybe_errors = mk_errors(obj['errors'], config) \
         if 'errors' in obj else None
-    maybe_meta = mk_meta(obj['meta']) if 'meta' in obj else None
-    maybe_jsonapi = mk_jsonapi(obj['jsonapi']) if 'jsonapi' in obj else None
-    maybe_links = mk_links(obj['links']) if 'links' in obj else None
-    maybe_included = mk_included(obj['included']) \
+    maybe_meta = mk_meta(obj['meta'], config) if 'meta' in obj else None
+    maybe_jsonapi = mk_jsonapi(obj['jsonapi'], config) \
+        if 'jsonapi' in obj else None
+    maybe_top_level_links = mk_top_level_links(obj['links'], config) \
+        if 'links' in obj else None
+    maybe_included = mk_top_level_included(obj['included'], config) \
         if 'included' in obj else None
 
     if maybe_data:
@@ -213,15 +273,17 @@ def mk_top_level(obj):
     maybe_either_data_or_errors = maybe_data or maybe_errors
 
     return TopLevel(any_data_or_errors_or_meta, maybe_either_data_or_errors,
-                    maybe_meta, maybe_jsonapi, maybe_links, maybe_included)
+                    maybe_meta, maybe_jsonapi, maybe_top_level_links,
+                    maybe_included)
 
 
-def mk_data(obj):
-    container = mk_entries(obj) if type(obj) is list else mk_entry(obj)
+def mk_data(obj, config):
+    container = mk_entries(obj, config) \
+        if type(obj) is list else mk_entry(obj, config)
     return Data(container)
 
 
-def mk_errors(obj):
+def mk_errors(obj, config):
     list_errors = []
 
     for obj_error in obj:
@@ -240,17 +302,4 @@ def mk_errors(obj):
         list_errors.append(error)
 
     return Errors(list_errors)
-
-
-def mk_jsonapi(obj):
-    pass
-
-
-def mk_links(obj):
-    pass
-
-
-def mk_included(obj):
-    pass
-
 

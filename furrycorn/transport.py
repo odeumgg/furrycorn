@@ -5,61 +5,10 @@ from requests import Request, Response, Session
 from urllib.parse import urlencode, parse_qs
 from urllib3.util.url import parse_url
 
+
 PATT_FILTER_QP = re.compile('^filter\[(.*)\]$')
 PATT_PAGE_QP   = re.compile('^page\[(.*)\]$')
 PATT_SORT_QP   = re.compile('^sort$')
-
-
-def _param_subset(src, expr):
-    relevant = {}
-
-    for key, value in src.items():
-        match = expr.match(key)
-        if match is not None:
-            relevant[match.group(1)] = value[0] # only first from query string
-
-    return relevant
-
-
-def _derived_query(parsed_qs):
-    if 'sort' in parsed_qs:
-        return Query(_param_subset(parsed_qs, PATT_FILTER_QP),
-                     _param_subset(parsed_qs, PATT_PAGE_QP),
-                     parsed_qs.get('sort')[0])
-    else:
-        return Query(_param_subset(parsed_qs, PATT_FILTER_QP),
-                     _param_subset(parsed_qs, PATT_PAGE_QP),
-                     None)
-
-
-def resource_to_api_url(resource):
-    return str(resource)
-
-
-def api_url_to_resource(api_url, script_name):
-    "Convert SLS API url to Resource type instance."
-
-    sn_re     = re.compile('^{0}\/(.*)$'.format(re.escape(script_name)))
-    url       = parse_url(api_url)
-    path_info = sn_re.match(url.path)
-
-    if not path_info:
-        msg = 'api_url/script_name mismatch: {0}'.format(api_url)
-        raise RuntimeError(msg)
-
-    path_info_components = path_info.group(1).split('/')
-
-    if len(path_info_components) not in [1, 2]:
-        msg = 'api_url has unintelligible document: {0}'.format(api_url)
-        raise RuntimeError(msg)
-
-    if url.query is None:
-        return Resource(Origin(url.scheme, url.host, url.port, script_name),
-                        Document(*path_info_components))
-    else:
-        return Resource(Origin(url.scheme, url.host, url.port, script_name),
-                        Document(*path_info_components),
-                        _derived_query(parse_qs(url.query)))
 
 
 class Fetch:
@@ -212,4 +161,64 @@ class Query(namedtuple('Query', ['map_filters', 'map_pagination',
             merged['sort'] = self.maybe_sort
 
         return merged
+
+
+def _param_subset(src, expr):
+    relevant = {}
+
+    for key, value in src.items():
+        match = expr.match(key)
+        if match is not None:
+            relevant[match.group(1)] = value[0] # only first from query string
+
+    return relevant
+
+
+def _derived_query(parsed_qs):
+    if 'sort' in parsed_qs:
+        return Query(_param_subset(parsed_qs, PATT_FILTER_QP),
+                     _param_subset(parsed_qs, PATT_PAGE_QP),
+                     parsed_qs.get('sort')[0])
+    else:
+        return Query(_param_subset(parsed_qs, PATT_FILTER_QP),
+                     _param_subset(parsed_qs, PATT_PAGE_QP),
+                     None)
+
+
+def mk_fetch(access):
+    return Fetch(access)
+
+
+def mk_access(api_key, resource):
+    return Access(api_key, resource)
+
+
+def resource_to_api_url(resource):
+    return str(resource)
+
+
+def api_url_to_resource(api_url, script_name):
+    "Convert SLS API url to Resource type instance."
+
+    sn_re     = re.compile('^{0}\/(.*)$'.format(re.escape(script_name)))
+    url       = parse_url(api_url)
+    path_info = sn_re.match(url.path)
+
+    if not path_info:
+        msg = 'api_url/script_name mismatch: {0}'.format(api_url)
+        raise RuntimeError(msg)
+
+    path_info_components = path_info.group(1).split('/')
+
+    if len(path_info_components) not in [1, 2]:
+        msg = 'api_url has unintelligible document: {0}'.format(api_url)
+        raise RuntimeError(msg)
+
+    if url.query is None:
+        return Resource(Origin(url.scheme, url.host, url.port, script_name),
+                        Document(*path_info_components))
+    else:
+        return Resource(Origin(url.scheme, url.host, url.port, script_name),
+                        Document(*path_info_components),
+                        _derived_query(parse_qs(url.query)))
 
