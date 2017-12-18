@@ -1,7 +1,7 @@
 from collections import namedtuple
 
-from .. import resource
-from .. import resource_identifier
+from .common import resource
+from .common import resource_identifier
 
 
 class Entry(namedtuple('Entry', ['either_resource_or_resource_id'])):

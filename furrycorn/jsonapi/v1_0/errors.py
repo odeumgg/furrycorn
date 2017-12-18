@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+
 class Error(namedtuple('Error', ['maybe_id', 'maybe_links', 'maybe_status',
                                  'maybe_code', 'maybe_title', 'maybe_detail',
                                  'maybe_source', 'maybe_meta'])):

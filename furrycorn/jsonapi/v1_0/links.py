@@ -1,6 +1,7 @@
 from collections import namedtuple
 
-from .. import pagination
+from .common import pagination
+
 
 class Links(namedtuple('Links', ['links_pagination', 'maybe_self',
                                  'maybe_related'])):
