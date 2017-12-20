@@ -79,6 +79,8 @@ def mk_data(obj, config):
         return ToMany(list_resource_ids)
     elif type(obj) is dict:
         return ToOne(resource_identifier.mk(obj, config))
+    elif not obj:
+        return ToOne(None)
 
     msg = "relationships['data'] is unintelligible: {0}".format(str(obj))
     raise RuntimeError(msg)
