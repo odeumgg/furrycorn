@@ -3,7 +3,7 @@ from pprint import pprint
 
 from furrycorn.jsonapi import v1_0
 from furrycorn.jsonapi.v1_0.data import Data
-from furrycorn.toolkit.top_level_data import Directory
+from furrycorn.toolkit.resources import Resources
 from furrycorn.transport import mk_access, mk_fetch, api_url_to_resource
 
 
@@ -23,7 +23,7 @@ def then_print(response):
     if type(any_data_or_errors_or_meta) is not Data:
         raise RuntimeError("oops, your response had no data")
 
-    directory = Directory(any_data_or_errors_or_meta, maybe_included)
+    directory = Resources(any_data_or_errors_or_meta, maybe_included)
     pprint(directory.produce_all_types())
 
 

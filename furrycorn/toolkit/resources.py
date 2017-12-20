@@ -63,7 +63,7 @@ def process_maybe_jsonapi_included(maybe_jsonapi_included=None):
         raise RuntimeError(msg)
 
 
-class Directory:
+class Resources:
     def __init__(self, jsonapi_data, maybe_jsonapi_included=None):
         list_data_entries = process_jsonapi_data(jsonapi_data)
 
