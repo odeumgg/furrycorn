@@ -58,7 +58,7 @@ def mk_config(mode, maybe_logger=None):
     return Config(mode, maybe_logger)
 
 
-def parse(obj, config):
+def process(obj, config):
     if 'data' in obj and 'errors' in obj:
         raise RuntimeError('response cannot contain both data and errors')
 

@@ -1,9 +1,6 @@
 import os
 
-from furrycorn.jsonapi.v1_0 import parsing
 from furrycorn.jsonapi.v1_0 import toolkit
-from furrycorn.jsonapi.v1_0.parsing.data import Data
-from furrycorn.jsonapi.v1_0.toolkit.directory import Directory
 from furrycorn.transport import mk_access, mk_fetch, api_url_to_resource
 
 
@@ -14,19 +11,8 @@ access   = mk_access(api_key, resource)
 
 
 def then_print(http_response):
-    config = parsing.mk_config(parsing.Mode.LENIENT) 
-    root   = parsing.parse(http_response.json(), config)
-
-    # Cool thing about tuples--you can deconstruct them into local vars.
-    any_data_or_errors_or_meta, _, _, _, _, maybe_included = root
-
-    if type(any_data_or_errors_or_meta) is not Data:
-        raise RuntimeError("oops, your response had no data")
-
-    directory   = Directory(any_data_or_errors_or_meta, maybe_included)
-    tk_document = toolkit.process(directory, root)
-
-    maybe_contents = tk_document.produce_maybe_contents()
+    document       = toolkit.process(http_response.json())
+    maybe_contents = document.produce_maybe_contents()
 
     # This doesn't do anything but show you how the API works.
     if maybe_contents:
