@@ -3,8 +3,8 @@ from enum import Enum
 from .. import directory
 from ..traversal import resolve, ResourceProxy
 
-from ...parsing.data import Entries
-from ...parsing.common.resource import Resource
+from ...model.data import Entries
+from ...model.common.resource import Resource
 
 
 class Cardinality(Enum):

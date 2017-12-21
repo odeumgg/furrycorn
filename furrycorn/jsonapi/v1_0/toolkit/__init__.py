@@ -1,15 +1,16 @@
 from .document import data, errors, meta
 
 from .directory import Directory
-from .. import parsing
-from ..parsing.data import Data, Entry, Entries
-from ..parsing.errors import Errors
-from ..parsing.common.meta import Meta
+from .. import config
+from .. import model
+from ..model.data import Data, Entry, Entries
+from ..model.errors import Errors
+from ..model.common.meta import Meta
 
 
 def process(obj, maybe_config=None):
-    config = maybe_config or parsing.mk_config(parsing.Mode.LENIENT)
-    root   = parsing.process(obj, config)
+    _config = maybe_config or config.mk(config.Mode.LENIENT)
+    root    = model.build(obj, _config)
 
     any_data_or_errors_or_meta, maybe_either_data_or_errors, maybe_meta, \
         maybe_jsonapi, maybe_links, maybe_included = root

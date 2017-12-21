@@ -1,10 +1,10 @@
 from collections import defaultdict
 from functools import reduce
 
-from ..parsing.data import Entries, Entry, Data
-from ..parsing.included import Included
-from ..parsing.common.resource import Resource
-from ..parsing.common.resource_identifier import ResourceId
+from ..model.data import Entries, Entry, Data
+from ..model.included import Included
+from ..model.common.resource import Resource
+from ..model.common.resource_identifier import ResourceId
 
 
 def entries_to_list(entries):

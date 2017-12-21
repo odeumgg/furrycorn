@@ -1,9 +1,9 @@
 from enum import Enum
 
-from ..parsing.common.relationships import Relationships, Data, \
+from ..model.common.relationships import Relationships, Data, \
                                            ToMany, ToOne
-from ..parsing.common.resource import Resource
-from ..parsing.common.resource_identifier import ResourceId
+from ..model.common.resource import Resource
+from ..model.common.resource_identifier import ResourceId
 
 
 class Cardinality(Enum):
@@ -80,7 +80,7 @@ class ResourceProxy:
                     relationship.any_data_or_links_or_meta
 
                 if type(any_data_or_links_or_meta) is not Data:
-                    msg = 'relationship unspecified'.format(str(maybe_relationships))
+                    msg = 'rel unspecified'.format(str(maybe_relationships))
                     raise RuntimeError(msg)
 
                 either_to_many_or_to_one, = any_data_or_links_or_meta
@@ -131,7 +131,8 @@ class RelationshipProxy:
         if self._cache_contents:
             return self._cache_contents
         else:
-            any_data_or_links_or_meta = self.relationship.any_data_or_links_or_meta
+            any_data_or_links_or_meta = \
+                self.relationship.any_data_or_links_or_meta
 
             if self.cardinality == Cardinality.MANY:
                 to_many, = any_data_or_links_or_meta
