@@ -7,27 +7,27 @@ from furrycorn.jsonapi.v1_0.common.resource import Resource
 from furrycorn.jsonapi.v1_0.common.resource_identifier import ResourceId
 
 
-def jsonapi_entries_to_list(jsonapi_entries):
-    if type(jsonapi_entries) is Entries:
-        return jsonapi_entries.list_entries
+def entries_to_list(entries):
+    if type(entries) is Entries:
+        return entries.list_entries
     else:
-        raise RuntimeError('insanity: {0}'.format(str(jsonapi_entries)))
+        raise RuntimeError('insanity: {0}'.format(str(entries)))
 
 
-def jsonapi_entry_to_list(jsonapi_entry):
-    if type(jsonapi_entry) is Entry:
-        return [jsonapi_entry]
+def entry_to_list(entry):
+    if type(entry) is Entry:
+        return [entry]
     else:
-        raise RuntimeError('insanity: {0}'.format(str(maybe_jsonapi_entry)))
+        raise RuntimeError('insanity: {0}'.format(str(maybe_entry)))
 
 
-def process_jsonapi_data(jsonapi_data):
-    either_entries_or_maybe_entry, = jsonapi_data
+def process_data(data):
+    either_entries_or_maybe_entry, = data
 
     if type(either_entries_or_maybe_entry) is Entries:
-        return jsonapi_entries_to_list(either_entries_or_maybe_entry)
+        return entries_to_list(either_entries_or_maybe_entry)
     elif type(either_entries_or_maybe_entry) is Entry:
-        return jsonapi_entry_to_list(either_entries_or_maybe_entry)
+        return entry_to_list(either_entries_or_maybe_entry)
     elif type(either_entries_or_maybe_entry) is None:
         return []
     else:
@@ -35,8 +35,8 @@ def process_jsonapi_data(jsonapi_data):
         raise RuntimeError(msg)
 
 
-def jsonapi_entry_contains_resource(jsonapi_entry):
-    either_resource_or_resource_id, = jsonapi_entry
+def entry_contains_resource(entry):
+    either_resource_or_resource_id, = entry
 
     if type(either_resource_or_resource_id) is Resource:
         return True
@@ -47,32 +47,30 @@ def jsonapi_entry_contains_resource(jsonapi_entry):
         raise RuntimeError(msg)
 
 
-def find_data_resources(list_jsonapi_entries):
-    filtered = filter(jsonapi_entry_contains_resource, list_jsonapi_entries)
+def find_data_resources(list_entries):
+    filtered = filter(entry_contains_resource, list_entries)
     return list(map(lambda r: r.either_resource_or_resource_id, filtered))
 
 
-def process_maybe_jsonapi_included(maybe_jsonapi_included=None):
-    if type(maybe_jsonapi_included) is Included:
-        list_jsonapi_resources, = maybe_jsonapi_included
-        return list_jsonapi_resources
-    elif type(maybe_jsonapi_included) is None:
+def process_maybe_included(maybe_included=None):
+    if type(maybe_included) is Included:
+        list_resources, = maybe_included
+        return list_resources
+    elif type(maybe_included) is None:
         return []
     else:
-        msg = 'insanity: {0}'.format(str(maybe_jsonapi_included))
-        raise RuntimeError(msg)
+        raise RuntimeError('insanity: {0}'.format(str(maybe_included)))
 
 
-class Resources:
-    def __init__(self, jsonapi_data, maybe_jsonapi_included=None):
-        list_data_entries = process_jsonapi_data(jsonapi_data)
+class Directory:
+    def __init__(self, data, maybe_included=None):
+        list_data_entries = process_data(data)
 
-        from_data     = find_data_resources(list_data_entries)
-        from_included = process_maybe_jsonapi_included(maybe_jsonapi_included)
-
+        from_data      = find_data_resources(list_data_entries)
+        from_included  = process_maybe_included(maybe_included)
         list_resources = from_data + from_included
 
-        self._directory       = { r.resource_id: r for r in list_resources }
+        self._resources       = { r.resource_id: r for r in list_resources }
         self._cache_all_types = None
         self._cache_by_type   = defaultdict(list)
 
@@ -84,7 +82,7 @@ class Resources:
             list_types = \
                 map(
                     lambda resource_id: resource_id.r_type,
-                    self._directory.keys()
+                    self._resources.keys()
                 )
             self._cache_all_types = set(list_types)
 
@@ -92,18 +90,18 @@ class Resources:
 
 
     def fetch(self, resource_id):
-        return self._directory[resource_id]
+        return self._resources[resource_id]
 
 
     def fetch_all_of_type(self, _type):
         if _type in self._cache_by_type:
             return self._cache_by_type[_type]
         else:
-            def _f(resource):
+            def _fetch_all_of_type(resource):
                 return resource.resource_id.r_type == _type
 
             self._cache_by_type[_type] = \
-                list(filter(_f, self._directory.values()))
+                list(filter(_fetch_all_of_type, self._resources.values()))
 
             return self._cache_by_type[_type]
 

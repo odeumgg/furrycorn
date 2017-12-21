@@ -1,10 +1,21 @@
 from collections import namedtuple
 
-from . import meta, resource_identifier
+from . import meta, pagination, resource_identifier
 
 
-class Links(namedtuple('Links', ['pagination', 'maybe_self',
-                                 'maybe_related'])):
+class ToOneLinks(namedtuple('ToOneLinks', ['maybe_self', 'maybe_related'])):
+    """
+    Representation of links for a to-one relationship anywhere in a response.
+    """
+
+    __slots__ = ()
+
+    def __new__(cls, pagination, maybe_self=None, maybe_related=None):
+        return super(ToOneLinks, cls).__new__(cls, maybe_self, maybe_related)
+
+
+class ToManyLinks(namedtuple('ToManyLinks', ['pagination', 'maybe_self',
+                                             'maybe_related'])):
     """
     Representation of links for a to-many relationship anywhere in a response.
     """
@@ -12,8 +23,8 @@ class Links(namedtuple('Links', ['pagination', 'maybe_self',
     __slots__ = ()
 
     def __new__(cls, pagination, maybe_self=None, maybe_related=None):
-        return super(Links, cls).__new__(cls, pagination, maybe_self,
-                                         maybe_related)
+        return super(ToManyLinks, cls).__new__(cls, pagination, maybe_self,
+                                               maybe_related)
 
 
 class ToOne(namedtuple('ToOne', ['maybe_resource_id'])):
@@ -43,20 +54,22 @@ class Data(namedtuple('Data', ['either_to_many_or_to_one'])):
         return super(Data, cls).__new__(cls, either_to_many_or_to_one)
 
 
-class Relationship(namedtuple('Relationship', ['name',
-                                               'any_data_or_links_or_meta',
-                                               'maybe_data', 'maybe_links',
-                                               'maybe_meta'])):
+class Relationship(namedtuple(
+    'Relationship',
+    ['name', 'any_data_or_links_or_meta', 'maybe_data',
+     'maybe_either_to_one_links_or_to_many_links', 'maybe_meta'])):
     """Representation of a relationship in a relationships lookup."""
 
     __slots__ = ()
 
     def __new__(cls, name, any_data_or_links_or_meta, maybe_data=None,
-                maybe_links=None, maybe_meta=None):
-        return super(Relationship, cls).__new__(cls, name,
-                                                any_data_or_links_or_meta,
-                                                maybe_data, maybe_links,
-                                                maybe_meta)
+                maybe_either_to_one_links_or_to_many_links=None,
+                maybe_meta=None):
+        return \
+            super(Relationship, cls).__new__(
+                cls, name, any_data_or_links_or_meta, maybe_data,
+                maybe_either_to_one_links_or_to_many_links, maybe_meta
+            )
 
 
 class Relationships(namedtuple('Relationships', ['dict_relationships'])):
@@ -76,21 +89,29 @@ def mk_data(obj, config):
             resource_id = resource_identifier.mk(obj_resource_id, config)
             list_resource_ids.append(resource_id)
 
-        return ToMany(list_resource_ids)
+        return Data(ToMany(list_resource_ids))
     elif type(obj) is dict:
-        return ToOne(resource_identifier.mk(obj, config))
+        return Data(ToOne(resource_identifier.mk(obj, config)))
     elif not obj:
-        return ToOne(None)
+        return Data(ToOne(None))
 
     msg = "relationships['data'] is unintelligible: {0}".format(str(obj))
     raise RuntimeError(msg)
 
 
-def mk_links(obj, config):
+def mk_to_one_links(obj, config):
     maybe_self    = obj.get(   'self', None)
     maybe_related = obj.get('related', None)
 
-    return Links(maybe_self, maybe_related)
+    return ToOneLinks(maybe_self, maybe_related)
+
+
+def mk_to_many_links(obj, config):
+    pagination    = pagination.mk(obj, config)
+    maybe_self    = obj.get(   'self', None)
+    maybe_related = obj.get('related', None)
+
+    return ToManyLinks(pagination, maybe_self, maybe_related)
 
 
 def mk(obj, config):
@@ -99,7 +120,8 @@ def mk(obj, config):
     for name, obj_relationship in obj.items():
         if 'data' not in obj_relationship and 'links' not in obj_relationship and \
            'meta' not in obj_relationship:
-            raise RuntimeError('relationships must contain data, links, or meta (1)')
+            msg = 'relationships must contain data, links, or meta (1)'
+            raise RuntimeError(msg)
 
         if 'data' in obj_relationship:
             maybe_data = mk_data(obj_relationship['data'], config)
@@ -107,9 +129,16 @@ def mk(obj, config):
             maybe_data = None
 
         if 'links' in obj_relationship:
-            maybe_links = mk_links(obj_relationship['links'], config)
+            if type(maybe_data) in [ToOne, None]:
+                maybe_either_to_one_links_or_to_many_links = \
+                    mk_to_one_links(obj_relationship['links'], config)
+            elif type(maybe_data) is ToMany:
+                maybe_either_to_one_links_or_to_many_links = \
+                    mk_to_many_links(obj_relationship['links'], config)
+            else:
+                raise RuntimeError('insanity: {0}'.format(str(maybe_data)))
         else:
-            maybe_links = None
+            maybe_either_to_one_links_or_to_many_links = None
 
         if 'meta' in obj_relationship:
             maybe_meta = meta.mk(obj_relationship['meta'], config)
@@ -122,7 +151,9 @@ def mk(obj, config):
             raise RuntimeError('response must contain data, links, or meta (2)')
 
         relationship = Relationship(name, any_data_or_links_or_meta,
-                                    maybe_data, maybe_links, maybe_meta)
+                                    maybe_data,
+                                    maybe_either_to_one_links_or_to_many_links,
+                                    maybe_meta)
 
         dict_relationships[name] = relationship
 
