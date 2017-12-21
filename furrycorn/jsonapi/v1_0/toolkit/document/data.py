@@ -3,8 +3,8 @@ from enum import Enum
 from .. import directory
 from ..traversal import resolve, ResourceProxy
 
-from furrycorn.jsonapi.v1_0.data import Entries
-from furrycorn.jsonapi.v1_0.common.resource import Resource
+from ...parsing.data import Entries
+from ...parsing.common.resource import Resource
 
 
 class Cardinality(Enum):

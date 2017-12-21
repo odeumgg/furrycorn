@@ -1,9 +1,9 @@
 from enum import Enum
 
-from furrycorn.jsonapi.v1_0.common.relationships import Relationships, Data, \
-                                                        ToMany, ToOne
-from furrycorn.jsonapi.v1_0.common.resource import Resource
-from furrycorn.jsonapi.v1_0.common.resource_identifier import ResourceId
+from ..parsing.common.relationships import Relationships, Data, \
+                                           ToMany, ToOne
+from ..parsing.common.resource import Resource
+from ..parsing.common.resource_identifier import ResourceId
 
 
 class Cardinality(Enum):

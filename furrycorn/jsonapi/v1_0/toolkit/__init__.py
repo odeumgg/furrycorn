@@ -1,11 +1,11 @@
-from . import data, errors, meta
+from .document import data, errors, meta
 
-from furrycorn.jsonapi.v1_0.data import Data, Entry, Entries
-from furrycorn.jsonapi.v1_0.errors import Errors
-from furrycorn.jsonapi.v1_0.common.meta import Meta
+from ..parsing.data import Data, Entry, Entries
+from ..parsing.errors import Errors
+from ..parsing.common.meta import Meta
 
 
-def mk(directory, root):
+def process(directory, root):
     any_data_or_errors_or_meta, maybe_either_data_or_errors, maybe_meta, \
         maybe_jsonapi, maybe_links, _ = root
 

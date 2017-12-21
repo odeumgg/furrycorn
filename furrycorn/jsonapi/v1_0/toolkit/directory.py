@@ -1,10 +1,10 @@
 from collections import defaultdict
 from functools import reduce
 
-from furrycorn.jsonapi.v1_0.data import Entries, Entry, Data
-from furrycorn.jsonapi.v1_0.included import Included
-from furrycorn.jsonapi.v1_0.common.resource import Resource
-from furrycorn.jsonapi.v1_0.common.resource_identifier import ResourceId
+from ..parsing.data import Entries, Entry, Data
+from ..parsing.included import Included
+from ..parsing.common.resource import Resource
+from ..parsing.common.resource_identifier import ResourceId
 
 
 def entries_to_list(entries):
