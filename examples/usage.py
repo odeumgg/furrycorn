@@ -1,4 +1,7 @@
 import os
+import sys
+
+sys.path.append(os.getcwd())
 
 from furrycorn import config
 from furrycorn import fetch
