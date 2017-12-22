@@ -168,7 +168,7 @@ def to_resource(tail):
     except IndexError:
         maybe_query = None
 
-    path_info_components = path_info.split('/')
+    path_info_components = path_info.split('/')[1:]
 
     if len(path_info_components) not in [1, 2]:
         msg = 'path has undiscernable document: {0}'.format(path)

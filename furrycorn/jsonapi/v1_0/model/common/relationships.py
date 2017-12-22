@@ -129,7 +129,7 @@ def mk(obj, config):
             maybe_data = None
 
         if 'links' in obj_relationship:
-            if type(maybe_data) in [ToOne, NoneType]:
+            if type(maybe_data) in [ToOne, type(None)]:
                 maybe_either_to_one_links_or_to_many_links = \
                     mk_to_one_links(obj_relationship['links'], config)
             elif type(maybe_data) is ToMany:

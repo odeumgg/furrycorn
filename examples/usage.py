@@ -2,6 +2,7 @@ import os
 
 from furrycorn import config
 from furrycorn import fetch
+from furrycorn.jsonapi.v1_0.toolkit.document import Data, Errors, Meta
 from furrycorn.location import to_origin, to_resource
 
 
@@ -10,21 +11,37 @@ config = \
               os.environ['FURRYCORN_API_KEY'])
 
 
-def then_print(document):
-    maybe_contents = document.produce_maybe_contents()
+def inspect(document):
+    if type(document) is Data:
+        for match in document:
+            print('match id "{0}"'.format(match.resource_id.r_id))
 
-    # This doesn't do anything but show you how the API works.
-    if maybe_contents:
-        for resource in maybe_contents:
-            resource_id = resource.resource_id
-            rosters = resource.relate('rosters')
-            for roster in rosters:
-                resource_id = roster.resource_id
-                print(resource_id)
+            # We know before the 'assets' has one entry--the telmetry. But...
+            # madglory exposes this (oddly) as 'to many', so we dig.
+            for asset in match.traverse('assets'):
+                if asset.maybe_dict_attrs.get('name', None):
+                    url = asset.maybe_dict_attrs['URL']
+                    print('  telemetry at: {0}'.format(url))
+
+            # Let's see how many rounds happened this match:
+            round_ct = len(match.traverse('rounds'))
+            print('  round count: {0}'.format(round_ct))
+
+            # And let's peek at the first roster's attributes:
+            first_roster = match.traverse('rosters')[0]
+            print('  roster #1 attrs: {0}'.format(first_roster.maybe_dict_attrs))
+    elif type(document) is Errors:
+        print("Your request produced a document with errors:")
+        from pprint import pprint
+        pprint(document.produce_errors())
+    elif type(document) is Meta:
+        print("Your request produced a document with only metadata:")
+        from pprint import pprint
+        pprint(document.produce_meta())
     else:
-        print("No content in document.")
+        print("Buy a lottery ticket. There's no way this can happen.")
 
 
 fetch = fetch.mk(config, to_resource('/matches'))
-fetch(then_print)
+fetch(inspect)
 
