@@ -1,46 +1,72 @@
 # Furrycorn
 
-Custom-made Battlerite API access framework.
+Easily navigate [jsonapi](http://jsonapi.org/) responses.
+
+(Compatible with Battlerite API!)
 
 
-## Rationale
+## Status
 
-Although the Madglory BattleRite API is built on the jsonapi standard, the
-author of this library couldn't find an implementation he liked.
+At a high level, this library provides:
 
-This library is an express opinion the best way to consume the BattleRite API.
+1. a DOM-like runtime representation of jsonapi response bodies.
+2. a toolkit for interpreting these structures and traversing relationships.
+3. a URL abstraction for interacting with services hosting jsonapi APIs.
+
+Heavy testing is needed before we publish to PyPI.
+
+Developed exclusively on Python 3.6. Compatibility with other versions to be
+investigated later.
+
+## Installing
+
+Installation should be a breeze using [pipenv](https://docs.pipenv.org/).
+
+If you're one of the three people using [nixos](https://nixos.org), you can
+simply boot a `nix-shell` to be off to the races.
+
+For the rest of the world:
+
+1. Clone the directory and navigate to your local repo in a command line.
+2. `pipenv intall --three` (tested only with Python 3!)
+3. `pipenv shell`
+
+You will need to set one environment variable to see the example run:
+
+`FURRYCORN_API_KEY` must be set to your [Battlerite Developer Portal](https://developer.battlerite.com) account's
+API key.
+
+We had no luck doing this on the command line in Windows. The var needed
+to be added via "My Computer > Properties > Advanced > Environment Variables".
+There's a graphical interface for adding them.
+
+In Linux/Unix systems, you can simply do:
+
+`export FURRYCORN_API_KEY="PASTEYOURKEYHERE"
+
+After that's taken care of, in your project dir, simply:
+
+`python examples/usage.py`
 
 
-## Type Fetishism
+## A Note About Code Style
 
-This library tries its hardest to ensure the main source of complexity is the
-composition of types. Side effects (operations which are dangerous to repeat)
-are kept obvious and at a minimum.
+The author of this library prefers a functional style of coding which centers
+on exploding the set of "types" defined in the system. This project makes only
+limited use of the object-oriented capabilities of Python.
 
-A note to readers of this code:
+It's a lot easier to reason about types than it is logical steps, and given
+the highly structured nature of jsonapi, it felt like a good fit.
 
-The author of this file (@onethirtyfive) has a bias for coding in a
-functional style. Emphasis is put on:
+Feel free to message `/u/onethirtysix` on reddit with any questions or concerns
+you have. I'm happy to help if you get stuck on anything while "grokking" or
+contributing.
 
-1. Immutabie and domain-specific data types. Where built-in Python
-   collection types like "dict" and "list" are used, the variable names are
-   prefixed for explicitness. (Otherwise, assume a custom type is present
-   for the value.) No prefix type-hinting is attempted for primitives like
-   'int' and 'str'.
-2. Composition of simpler types into more complex types.
-3. Explicit optionality--if a value can be None, its name must start with
-   "maybe\_". "null", or optional data, is a huge source of bugs in code.
-4. No shared mutable state.
-
-The code may not be as performant as conventional, stateful code, but it
-will be easier to maintain.
-
-There will be a conventional OO API for accessing high-level BR data.
+Cheers!
 
 
-## Usage
+## License
 
-For now, see `examples/usage.py`.
+This project is Copyright © 2017 odeum.gg and licensed under the MIT license.
+View LICENSE.md for details.
 
-
-More documentation forthcoming...
