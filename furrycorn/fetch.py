@@ -1,6 +1,6 @@
 from requests import Request, Session
 
-from furrycorn.jsonapi.v1_0 import toolkit
+from furrycorn.v1_0 import toolkit
 
 
 class Fetch:

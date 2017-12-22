@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 
 from furrycorn import config
 from furrycorn import fetch
-from furrycorn.jsonapi.v1_0.toolkit.document import Data, Errors, Meta
+from furrycorn.v1_0.toolkit.document import Data, Errors, Meta
 from furrycorn.location import to_origin, to_resource
 
 
