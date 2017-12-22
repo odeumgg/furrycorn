@@ -42,11 +42,11 @@ There's a graphical interface for adding them.
 
 In Linux/Unix systems, you can simply do:
 
-`export FURRYCORN_API_KEY="PASTEYOURKEYHERE"
+`export FURRYCORN_API_KEY="PASTEYOURKEYHERE"`
 
 After that's taken care of, in your project dir, simply:
 
-`python examples/usage.py`
+`python examples/battlerite.py`
 
 
 ## A Note About Code Style
