@@ -1,17 +1,16 @@
 import os
 
-from furrycorn.jsonapi.v1_0 import toolkit
-from furrycorn.transport import mk_access, mk_fetch, api_url_to_resource
+from furrycorn import config
+from furrycorn import fetch
+from furrycorn.location import to_origin, to_resource
 
 
-api_key  = os.environ['FURRYCORN_API_KEY']
-api_url  = 'https://api.dc01.gamelockerapp.com/shards/global/matches'
-resource = api_url_to_resource(api_url, '/shards/global')
-access   = mk_access(api_key, resource)
+config = \
+    config.mk(to_origin('https://api.dc01.gamelockerapp.com/shards/global'),
+              os.environ['FURRYCORN_API_KEY'])
 
 
-def then_print(http_response):
-    document       = toolkit.process(http_response.json())
+def then_print(document):
     maybe_contents = document.produce_maybe_contents()
 
     # This doesn't do anything but show you how the API works.
@@ -21,10 +20,11 @@ def then_print(http_response):
             rosters = resource.relate('rosters')
             for roster in rosters:
                 resource_id = roster.resource_id
+                print(resource_id)
     else:
         print("No content in document.")
 
 
-fetch = mk_fetch(access)
+fetch = fetch.mk(config, to_resource('/matches'))
 fetch(then_print)
 

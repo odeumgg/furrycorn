@@ -70,7 +70,7 @@ class Data:
                         ResourceProxy(self.directory, resource)
 
                     return self._cache_contents
-                elif type(maybe_entry) is None:
+                elif maybe_entry is None:
                     return None
                 else:
                     raise RuntimeError('insanity: {0}'.format(str(entry)))

@@ -53,7 +53,7 @@ class ResourceProxy:
                 self._cache_all_relationships = list(dict_relationships.keys())
 
                 return self._cache_all_relationships
-            elif type(maybe_relationships) is None:
+            elif maybe_relationships is None:
                 self._cache_all_relationships = []
                 return self._cache_all_relationships
             else:

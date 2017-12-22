@@ -28,7 +28,7 @@ def process_data(data):
         return entries_to_list(either_entries_or_maybe_entry)
     elif type(either_entries_or_maybe_entry) is Entry:
         return entry_to_list(either_entries_or_maybe_entry)
-    elif type(either_entries_or_maybe_entry) is None:
+    elif either_entries_or_maybe_entry is None:
         return []
     else:
         msg = 'insanity: {0}'.format(str(either_entries_or_maybe_entry))
@@ -56,7 +56,7 @@ def process_maybe_included(maybe_included=None):
     if type(maybe_included) is Included:
         list_resources, = maybe_included
         return list_resources
-    elif type(maybe_included) is None:
+    elif maybe_included is None:
         return []
     else:
         raise RuntimeError('insanity: {0}'.format(str(maybe_included)))

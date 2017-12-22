@@ -16,15 +16,15 @@ def process(obj, maybe_config=None):
         maybe_jsonapi, maybe_links, maybe_included = root
 
     if type(any_data_or_errors_or_meta) is Data:
-        directory = Directory(any_data_or_errors_or_meta, maybe_included)
+        _directory = Directory(any_data_or_errors_or_meta, maybe_included)
 
         either_entries_or_maybe_entry, = any_data_or_errors_or_meta
         if type(either_entries_or_maybe_entry) is Entries:
-            return data.Data(directory, data.Cardinality.MANY,
+            return data.Data(_directory, data.Cardinality.MANY,
                              any_data_or_errors_or_meta, maybe_meta,
                              maybe_jsonapi, maybe_links)
-        elif type(either_entries_or_maybe_entry) in [Entry, None]:
-            return data.Data(directory, data.Cardinality.MAYBE_ONE,
+        elif type(either_entries_or_maybe_entry) in [Entry, NoneType]:
+            return data.Data(_directory, data.Cardinality.MAYBE_ONE,
                              any_data_or_errors_or_meta, maybe_meta,
                              maybe_jsonapi, maybe_links)
         else:
