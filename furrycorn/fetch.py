@@ -1,3 +1,5 @@
+import simplejson
+
 from requests import Request, Session
 
 from furrycorn.v1_0 import toolkit
