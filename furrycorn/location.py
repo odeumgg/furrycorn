@@ -27,7 +27,7 @@ class Origin(namedtuple('Origin', ['scheme', 'host', 'script_name',
 
     def __new__(cls, scheme, host, script_name, maybe_port=None):
         return super(Origin, cls).__new__(cls, scheme, host, script_name,
-                                          maybe_port=None)
+                                          maybe_port)
 
     def __str__(self):
         if self.maybe_port is None:
@@ -38,9 +38,9 @@ class Origin(namedtuple('Origin', ['scheme', 'host', 'script_name',
                                              self.maybe_port, self.script_name)
 
 
-class Document(namedtuple('Document', ['name', 'maybe_identifier'])):
+class Path(namedtuple('Path', ['name', 'maybe_identifier'])):
     """
-    Description of 'document' part of SLS API URL.
+    Description of 'path' part of SLS API URL.
 
     Given a url path:
       /matches/1234?query=something
@@ -52,10 +52,11 @@ class Document(namedtuple('Document', ['name', 'maybe_identifier'])):
     __slots__ = ()
 
     def __new__(cls, name, identifier=None):
-        return super(Document, cls).__new__(cls, name, identifier)
+        return super(Path, cls).__new__(cls, name, identifier)
 
     def __str__(self):
-        components = filter(None, [self.name, self.maybe_identifier])
+        components = list(filter(None, [self.name, self.maybe_identifier]))
+
         if components:
             return '/{0}'.format('/'.join(components))
         else:
@@ -86,7 +87,7 @@ class Query(namedtuple('Query', ['dict_filters', 'dict_pagination',
         return '?{0}'.format(urlencode(boxed)) if boxed else ''
 
 
-class Resource(namedtuple('Resource', ['document', 'maybe_query'])):
+class Resource(namedtuple('Resource', ['path', 'maybe_query'])):
     """
     Description of 'resource' part of SLS API URL.
 
@@ -99,8 +100,8 @@ class Resource(namedtuple('Resource', ['document', 'maybe_query'])):
 
     __slots__ = ()
 
-    def __new__(cls, document, maybe_query=None):
-        return super(Resource, cls).__new__(cls, document, maybe_query)
+    def __new__(cls, path, maybe_query=None):
+        return super(Resource, cls).__new__(cls, path, maybe_query)
 
     def __str__(self):
         if self.maybe_query is None:
@@ -108,7 +109,7 @@ class Resource(namedtuple('Resource', ['document', 'maybe_query'])):
         else:
             query = self.maybe_query
 
-        return '{0}{1}'.format(self.document, query)
+        return '{0}{1}'.format(self.path, query)
 
 
 def box_params(dict_filters, dict_pagination, maybe_sort=None):
@@ -141,7 +142,7 @@ def unbox_params(src, expr):
     for key, value in src.items():
         match = expr.match(key)
         if match is not None:
-            relevant[match.group(1)] = value[0]
+            relevant[match.group(1)] = value
 
     return relevant
 
@@ -150,7 +151,7 @@ def derive_query(parsed_qs):
     if 'sort' in parsed_qs:
         return Query(unbox_params(parsed_qs, PATT_FILTER_QP),
                      unbox_params(parsed_qs, PATT_PAGE_QP),
-                     parsed_qs.get('sort')[0])
+                     parsed_qs.get('sort'))
     else:
         return Query(unbox_params(parsed_qs, PATT_FILTER_QP),
                      unbox_params(parsed_qs, PATT_PAGE_QP),
@@ -171,12 +172,16 @@ def to_resource(tail):
     path_info_components = path_info.split('/')[1:]
 
     if len(path_info_components) not in [1, 2]:
-        msg = 'path has undiscernable document: {0}'.format(path)
+        msg = 'resource has indiscernable path: {0}'.format(tail)
         raise RuntimeError(msg)
 
     if maybe_query is None:
-        return Resource(Document(*path_info_components))
+        return Resource(Path(*path_info_components))
     else:
-        return Resource(Document(*path_info_components),
+        return Resource(Path(*path_info_components),
                         derive_query(parse_qs(maybe_query)))
+
+
+def to_url(origin, resource):
+    return ''.join([str(origin), str(resource)])
 

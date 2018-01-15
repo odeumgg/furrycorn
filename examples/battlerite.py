@@ -1,25 +1,34 @@
 import os
+import simplejson
 import sys
+from requests import Request, Session
 
 sys.path.append(os.getcwd())
 
-from furrycorn import config, fetch
-from furrycorn.location import to_origin, to_resource
+from furrycorn import config, model, toolkit
+from furrycorn.location import to_origin, to_resource, to_url
 from furrycorn.toolkit.document import Data, Errors, Meta
 
 
-config = \
-    config.mk(to_origin('https://api.dc01.gamelockerapp.com/shards/global'),
-              os.environ['FURRYCORN_API_KEY'])
+origin = to_origin('https://api.dc01.gamelockerapp.com/shards/global') 
+config = config.mk(origin, os.environ['FURRYCORN_API_KEY'])
 
+resource = to_resource('/matches')
+headers  = { 'Accept': 'application/vnd.api+json',
+             'Authorization': 'Bearer {0}'.format(config.api_key) }
+request  = Request('GET', to_url(origin, resource), headers=headers).prepare()
 
-def inspect(document):
+with Session() as session:
+    response = session.send(request)
+    root     = model.build(response.json(), config)
+    document = toolkit.process(root)
+
     if type(document) is Data:
         for match in document:
             print('match id "{0}"'.format(match.resource_id.r_id))
 
             # We know before the 'assets' has one entry--the telmetry. But...
-            # madglory exposes this (oddly) as 'to many', so we dig.
+            # madglory exposes this as 'to many', so we dig.
             for asset in match.traverse('assets'):
                 if asset.maybe_dict_attrs.get('name', None):
                     url = asset.maybe_dict_attrs['URL']
@@ -43,7 +52,4 @@ def inspect(document):
     else:
         print("Buy a lottery ticket. There's no way this can happen.")
 
-
-fetch = fetch.mk(config, to_resource('/matches'))
-fetch(inspect)
 
