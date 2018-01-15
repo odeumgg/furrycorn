@@ -13,10 +13,12 @@ At a high level, this library provides:
 2. a toolkit for interpreting these structures and traversing relationships.
 3. a URL abstraction for interacting with services hosting jsonapi APIs.
 
-Heavy testing is needed before we publish to PyPI.
+**The core parsing functionality is well-tested, but the toolkit may have some
+bugs.**
 
 Developed exclusively on Python 3.6. Compatibility with other versions to be
 investigated later.
+
 
 ## Installing
 
