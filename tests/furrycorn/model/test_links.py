@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model import links
+from furrycorn import config
+from furrycorn.model import links
 
 
 def test_mk(mocker):

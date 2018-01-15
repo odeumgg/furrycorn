@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model.common import meta
+from furrycorn import config
+from furrycorn.model.common import meta
 
 
 def test_mk_maybe(mocker):

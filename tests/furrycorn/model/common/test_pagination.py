@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model.common import pagination
+from furrycorn import config
+from furrycorn.model.common import pagination
 
 
 def test_mk(mocker):

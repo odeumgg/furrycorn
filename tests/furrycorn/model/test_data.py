@@ -1,8 +1,8 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model import data
-from furrycorn.v1_0.model.common import resource, resource_identifier
+from furrycorn import config
+from furrycorn.model import data
+from furrycorn.model.common import resource, resource_identifier
 
 
 def test_mk_entry_on_resource(mocker):
@@ -10,10 +10,10 @@ def test_mk_entry_on_resource(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_resource_id = resource_identifier.ResourceId('type', '1234')
-    mocker.patch('furrycorn.v1_0.model.common.resource_identifier.mk',
+    mocker.patch('furrycorn.model.common.resource_identifier.mk',
                  return_value=fake_resource_id, autospec=True)
     fake_resource = resource.Resource(fake_resource_id)
-    mocker.patch('furrycorn.v1_0.model.common.resource.mk',
+    mocker.patch('furrycorn.model.common.resource.mk',
                  return_value=fake_resource, autospec=True)
 
     result = data.mk_entry(obj, config)
@@ -29,9 +29,9 @@ def test_mk_entry_on_resource_identifier(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_resource_id = resource_identifier.ResourceId('type', '1234')
-    mocker.patch('furrycorn.v1_0.model.common.resource_identifier.mk',
+    mocker.patch('furrycorn.model.common.resource_identifier.mk',
                  return_value=fake_resource_id, autospec=True)
-    mocker.patch('furrycorn.v1_0.model.common.resource.mk')
+    mocker.patch('furrycorn.model.common.resource.mk')
 
     result = data.mk_entry(obj, config)
 
@@ -45,7 +45,7 @@ def test_mk_entries(mocker):
     obj = [ {}, {}, {} ] # mock, need 3
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.data.mk_entry')
+    mocker.patch('furrycorn.model.data.mk_entry')
 
     result = data.mk_entries(obj, config)
 
@@ -58,7 +58,7 @@ def test_mk_on_list(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_entries = data.Entries([])
-    mocker.patch('furrycorn.v1_0.model.data.mk_entries',
+    mocker.patch('furrycorn.model.data.mk_entries',
                  return_value=fake_entries, autospec=True)
 
     result = data.mk(obj, config)
@@ -73,7 +73,7 @@ def test_mk_on_object(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_entry = data.Entry(resource_identifier.ResourceId('type', '1234'))
-    mocker.patch('furrycorn.v1_0.model.data.mk_entry',
+    mocker.patch('furrycorn.model.data.mk_entry',
                  return_value=fake_entry, autospec=True)
 
     result = data.mk(obj, config)
@@ -87,8 +87,8 @@ def test_mk_on_none(mocker):
     obj = None # mock
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.data.mk_entries')
-    mocker.patch('furrycorn.v1_0.model.data.mk_entry')
+    mocker.patch('furrycorn.model.data.mk_entries')
+    mocker.patch('furrycorn.model.data.mk_entry')
 
     result = data.mk(obj, config)
 

@@ -3,9 +3,9 @@ import sys
 
 sys.path.append(os.getcwd())
 
-from furrycorn.v1_0 import config, fetch
-from furrycorn.v1_0.location import to_origin, to_resource
-from furrycorn.v1_0.toolkit.document import Data, Errors, Meta
+from furrycorn import config, fetch
+from furrycorn.location import to_origin, to_resource
+from furrycorn.toolkit.document import Data, Errors, Meta
 
 
 config = \

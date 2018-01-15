@@ -2,7 +2,7 @@ import simplejson
 
 from requests import Request, Session
 
-from furrycorn.v1_0 import model, toolkit
+from furrycorn import model, toolkit
 
 
 class Fetch:

@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model.common import resource_identifier
+from furrycorn import config
+from furrycorn.model.common import resource_identifier
 
 
 def test_mk(mocker):

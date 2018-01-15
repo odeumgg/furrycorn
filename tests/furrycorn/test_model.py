@@ -1,8 +1,8 @@
 import pytest
 
-from furrycorn.v1_0 import config, model
-from furrycorn.v1_0.model import data, errors, jsonapi, included, links
-from furrycorn.v1_0.model.common import meta
+from furrycorn import config, model
+from furrycorn.model import data, errors, jsonapi, included, links
+from furrycorn.model.common import meta
 
 
 def test_mk_maybe_data(mocker):
@@ -10,7 +10,7 @@ def test_mk_maybe_data(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_data = data.Data(None)
-    mocker.patch('furrycorn.v1_0.model.data.mk', return_value=fake_data,
+    mocker.patch('furrycorn.model.data.mk', return_value=fake_data,
                  autospec=True)
 
     result = model.mk_maybe_data(obj, config)
@@ -23,7 +23,7 @@ def test_mk_maybe_data_on_none(mocker):
     obj = {} # mock, no 'data'
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.data.mk')
+    mocker.patch('furrycorn.model.data.mk')
 
     result = model.mk_maybe_data(obj, config)
 
@@ -36,7 +36,7 @@ def test_mk_maybe_errors(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_errors = errors.Errors([])
-    mocker.patch('furrycorn.v1_0.model.errors.mk', return_value=fake_errors,
+    mocker.patch('furrycorn.model.errors.mk', return_value=fake_errors,
                  autospec=True)
 
     result = model.mk_maybe_errors(obj, config)
@@ -49,7 +49,7 @@ def test_mk_maybe_errors_on_none(mocker):
     obj = {} # mock, no 'errors'
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.errors.mk')
+    mocker.patch('furrycorn.model.errors.mk')
 
     result = model.mk_maybe_errors(obj, config)
 
@@ -64,7 +64,7 @@ def test_mk_maybe_jsonapi(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     # fake_jsonapi = jsonapi.Errors([])
-    # mocker.patch('furrycorn.v1_0.model.errors.mk', return_value=fake_errors,
+    # mocker.patch('furrycorn.model.errors.mk', return_value=fake_errors,
     #              autospec=True)
 
     result = model.mk_maybe_jsonapi(obj, config)
@@ -74,7 +74,7 @@ def test_mk_maybe_jsonapi_on_none(mocker):
     obj = {} # mock, no 'jsonapi'
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.jsonapi.mk')
+    mocker.patch('furrycorn.model.jsonapi.mk')
 
     result = model.mk_maybe_jsonapi(obj, config)
 
@@ -87,7 +87,7 @@ def test_mk_maybe_links(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_links = links.Links([])
-    mocker.patch('furrycorn.v1_0.model.links.mk', return_value=fake_links,
+    mocker.patch('furrycorn.model.links.mk', return_value=fake_links,
                  autospec=True)
 
     result = model.mk_maybe_links(obj, config)
@@ -100,7 +100,7 @@ def test_mk_maybe_links_on_none(mocker):
     obj = {} # mock, no 'links'
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.links.mk')
+    mocker.patch('furrycorn.model.links.mk')
 
     result = model.mk_maybe_links(obj, config)
 
@@ -113,7 +113,7 @@ def test_mk_maybe_included(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_included = included.Included([])
-    mocker.patch('furrycorn.v1_0.model.included.mk',return_value=fake_included,
+    mocker.patch('furrycorn.model.included.mk',return_value=fake_included,
                  autospec=True)
 
     result = model.mk_maybe_included(obj, config)
@@ -126,7 +126,7 @@ def test_mk_maybe_included_on_none(mocker):
     obj = {} # mock, no 'included'
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.included.mk')
+    mocker.patch('furrycorn.model.included.mk')
 
     result = model.mk_maybe_included(obj, config)
 
@@ -139,13 +139,13 @@ def test_build(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_data = data.Data(None)
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_data', return_value=fake_data,
+    mocker.patch('furrycorn.model.mk_maybe_data', return_value=fake_data,
                  autospec=True)
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_errors', return_value=None)
-    mocker.patch('furrycorn.v1_0.model.common.meta.mk_maybe')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_jsonapi')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_links')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_included')
+    mocker.patch('furrycorn.model.mk_maybe_errors', return_value=None)
+    mocker.patch('furrycorn.model.common.meta.mk_maybe')
+    mocker.patch('furrycorn.model.mk_maybe_jsonapi')
+    mocker.patch('furrycorn.model.mk_maybe_links')
+    mocker.patch('furrycorn.model.mk_maybe_included')
 
     result = model.build(obj, config)
 
@@ -164,15 +164,15 @@ def test_build_on_insanity_data_and_errors(mocker):
 
     # insanity here is that both data and errors are present
     fake_data = data.Data(None)
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_data', return_value=fake_data,
+    mocker.patch('furrycorn.model.mk_maybe_data', return_value=fake_data,
                  autospec=True)
     fake_errors = errors.Errors([])
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_errors',
+    mocker.patch('furrycorn.model.mk_maybe_errors',
                  return_value=fake_errors, autospec=True)
-    mocker.patch('furrycorn.v1_0.model.common.meta.mk_maybe')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_jsonapi')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_links')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_included')
+    mocker.patch('furrycorn.model.common.meta.mk_maybe')
+    mocker.patch('furrycorn.model.mk_maybe_jsonapi')
+    mocker.patch('furrycorn.model.mk_maybe_links')
+    mocker.patch('furrycorn.model.mk_maybe_included')
 
     with pytest.raises(RuntimeError) as e_info:
         model.build(obj, config)
@@ -184,12 +184,12 @@ def test_build_on_insanity_not_any(mocker):
 
     # insanity here is all patched methods return None, so neither data nor
     # errors nor meta are present
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_data', return_value=None)
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_errors', return_value=None)
-    mocker.patch('furrycorn.v1_0.model.common.meta.mk_maybe', return_value=None)
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_jsonapi')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_links')
-    mocker.patch('furrycorn.v1_0.model.mk_maybe_included')
+    mocker.patch('furrycorn.model.mk_maybe_data', return_value=None)
+    mocker.patch('furrycorn.model.mk_maybe_errors', return_value=None)
+    mocker.patch('furrycorn.model.common.meta.mk_maybe', return_value=None)
+    mocker.patch('furrycorn.model.mk_maybe_jsonapi')
+    mocker.patch('furrycorn.model.mk_maybe_links')
+    mocker.patch('furrycorn.model.mk_maybe_included')
 
     with pytest.raises(RuntimeError) as e_info:
         model.build(obj, config)

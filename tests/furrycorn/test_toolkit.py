@@ -1,15 +1,15 @@
 import pytest
 
-from furrycorn.v1_0 import config, model, toolkit
-from furrycorn.v1_0.model import data, errors
-from furrycorn.v1_0.model.common import meta
-from furrycorn.v1_0.toolkit import document
+from furrycorn import config, model, toolkit
+from furrycorn.model import data, errors
+from furrycorn.model.common import meta
+from furrycorn.toolkit import document
 
 
 def test_process_on_data(mocker):
     fake_root     = model.Root(data.Data(None)) # mock
     fake_document = document.Data(fake_root.primary)
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_data',
+    mocker.patch('furrycorn.toolkit.document.mk_data',
                  return_value=fake_document, autospec=True)
 
     result = toolkit.process(fake_root)
@@ -21,7 +21,7 @@ def test_process_on_data(mocker):
 def test_process_on_errors(mocker):
     fake_root     = model.Root(errors.Errors([])) # mock
     fake_document = document.Errors(fake_root.primary)
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_errors',
+    mocker.patch('furrycorn.toolkit.document.mk_errors',
                  return_value=fake_document, autospec=True)
 
     result = toolkit.process(fake_root)
@@ -33,7 +33,7 @@ def test_process_on_errors(mocker):
 def test_process_on_meta(mocker):
     fake_root     = model.Root(meta.Meta([])) # mock
     fake_document = document.Meta(fake_root.primary)
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_meta',
+    mocker.patch('furrycorn.toolkit.document.mk_meta',
                  return_value=fake_document, autospec=True)
 
     result = toolkit.process(fake_root)
@@ -45,9 +45,9 @@ def test_process_on_meta(mocker):
 def test_process_on_insanity(mocker):
     fake_root     = model.Root(1) # mock, insane
     fake_document = document.Meta(fake_root.primary)
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_data')
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_errors')
-    mocker.patch('furrycorn.v1_0.toolkit.document.mk_meta')
+    mocker.patch('furrycorn.toolkit.document.mk_data')
+    mocker.patch('furrycorn.toolkit.document.mk_errors')
+    mocker.patch('furrycorn.toolkit.document.mk_meta')
 
     with pytest.raises(RuntimeError):
         toolkit.process(fake_root)

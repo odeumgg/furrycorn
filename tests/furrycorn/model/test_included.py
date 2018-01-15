@@ -1,8 +1,8 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model import included
-from furrycorn.v1_0.model.common import resource, resource_identifier
+from furrycorn import config
+from furrycorn.model import included
+from furrycorn.model.common import resource, resource_identifier
 
 
 def test_mk_single(mocker):
@@ -10,10 +10,10 @@ def test_mk_single(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_resource_identifier = resource_identifier.ResourceId('test', '1234')
-    mocker.patch('furrycorn.v1_0.model.common.resource_identifier.mk',
+    mocker.patch('furrycorn.model.common.resource_identifier.mk',
                  return_value=fake_resource_identifier, autospec=True)
     fake_resource = resource.Resource(fake_resource_identifier)
-    mocker.patch('furrycorn.v1_0.model.common.resource.mk',
+    mocker.patch('furrycorn.model.common.resource.mk',
                  return_value=fake_resource, autospec=True)
 
     result = included.mk_single(obj, cfg)
@@ -28,7 +28,7 @@ def test_mk(mocker):
     obj = [ {}, {}, {} ] # mock
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.included.mk_single')
+    mocker.patch('furrycorn.model.included.mk_single')
 
     result = included.mk(obj, cfg)
 

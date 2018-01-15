@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model.common import meta, relationships, resource, \
+from furrycorn import config
+from furrycorn.model.common import meta, relationships, resource, \
                                         resource_identifier
 
 
@@ -36,7 +36,7 @@ def test_mk_maybe_relationships(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_relationships = relationships.Relationships({})
-    mocker.patch('furrycorn.v1_0.model.common.relationships.mk',
+    mocker.patch('furrycorn.model.common.relationships.mk',
                  return_value=fake_relationships, autospec=True)
 
     result = resource.mk_maybe_relationships(obj, cfg)
@@ -49,7 +49,7 @@ def test_mk_maybe_relationships_none(mocker):
     obj = {} # mock
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.common.relationships.mk')
+    mocker.patch('furrycorn.model.common.relationships.mk')
 
     result = resource.mk_maybe_relationships(obj, cfg)
 
@@ -62,7 +62,7 @@ def test_mk_maybe_links(mocker):
     cfg = config.mk('https://api', 'ABCDEF')
 
     fake_links = resource.Links()
-    mocker.patch('furrycorn.v1_0.model.common.resource.mk_links',
+    mocker.patch('furrycorn.model.common.resource.mk_links',
                  return_value=fake_links, autospec=True)
 
     result = resource.mk_maybe_links(obj, cfg)
@@ -75,7 +75,7 @@ def test_mk_maybe_links_none(mocker):
     obj = {} # mock
     cfg = config.mk('https://api', 'ABCDEF')
 
-    mocker.patch('furrycorn.v1_0.model.common.resource.mk_links')
+    mocker.patch('furrycorn.model.common.resource.mk_links')
 
     result = resource.mk_maybe_links(obj, cfg)
 
@@ -88,10 +88,10 @@ def test_mk(mocker):
     obj              = {} # mock
     cfg              = config.mk('https://api', 'ABCDEF')
 
-    patch1 = 'furrycorn.v1_0.model.common.resource.mk_maybe_dict_attrs'
-    patch2 = 'furrycorn.v1_0.model.common.resource.mk_maybe_relationships'
-    patch3 = 'furrycorn.v1_0.model.common.resource.mk_maybe_links'
-    patch4 = 'furrycorn.v1_0.model.common.meta.mk_maybe'
+    patch1 = 'furrycorn.model.common.resource.mk_maybe_dict_attrs'
+    patch2 = 'furrycorn.model.common.resource.mk_maybe_relationships'
+    patch3 = 'furrycorn.model.common.resource.mk_maybe_links'
+    patch4 = 'furrycorn.model.common.meta.mk_maybe'
 
     mocker.patch(patch1)
     mocker.patch(patch2)

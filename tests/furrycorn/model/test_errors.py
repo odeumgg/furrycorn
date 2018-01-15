@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model import errors
+from furrycorn import config
+from furrycorn.model import errors
 
 
 def test_mk_single(mocker):

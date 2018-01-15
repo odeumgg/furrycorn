@@ -1,6 +1,6 @@
-from furrycorn.v1_0.model import data, errors
-from furrycorn.v1_0.model.common import meta
-from furrycorn.v1_0.toolkit import document
+from furrycorn.model import data, errors
+from furrycorn.model.common import meta
+from furrycorn.toolkit import document
 
 
 def process(root):

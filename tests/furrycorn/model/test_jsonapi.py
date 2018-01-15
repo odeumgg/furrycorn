@@ -1,7 +1,7 @@
 import pytest
 
-from furrycorn.v1_0 import config
-from furrycorn.v1_0.model import jsonapi
+from furrycorn import config
+from furrycorn.model import jsonapi
 
 
 def test_mk(mocker):
