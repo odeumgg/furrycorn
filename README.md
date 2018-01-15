@@ -35,7 +35,7 @@ For the rest of the world:
 
 You will need to set one environment variable to see the example run:
 
-`FURRYCORN_API_KEY` must be set to your [Battlerite Developer Portal](https://developer.battlerite.com) account's
+`BATTLERITE_API_KEY` must be set to your [Battlerite Developer Portal](https://developer.battlerite.com) account's
 API key.
 
 We had no luck doing this on the command line in Windows. The var needed
@@ -44,7 +44,7 @@ There's a graphical interface for adding them.
 
 In Linux/Unix systems, you can simply do:
 
-`export FURRYCORN_API_KEY="PASTEYOURKEYHERE"`
+`export BATTLERITE_API_KEY="PASTEYOURKEYHERE"`
 
 After that's taken care of, in your project dir, simply:
 

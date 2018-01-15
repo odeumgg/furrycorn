@@ -6,17 +6,17 @@ from requests import Request, Session
 sys.path.append(os.getcwd())
 
 from furrycorn import config, model, toolkit
-from furrycorn.location import to_origin, to_resource, to_url
+from furrycorn.location import mk_origin, mk_path, mk_query, to_url
 from furrycorn.toolkit.document import Data, Errors, Meta
 
 
-origin = to_origin('https://api.dc01.gamelockerapp.com/shards/global') 
-config = config.mk(origin, os.environ['FURRYCORN_API_KEY'])
+api_key = os.environ['BATTLERITE_API_KEY']
+origin  = mk_origin('https', 'api.dc01.gamelockerapp.com', '/shards/global')
+headers = { 'Accept': 'application/vnd.api+json',
+            'Authorization': 'Bearer {0}'.format(api_key) }
+url     = to_url(origin, mk_path('/matches'))
+request = Request('GET', url, headers=headers).prepare()
 
-resource = to_resource('/matches')
-headers  = { 'Accept': 'application/vnd.api+json',
-             'Authorization': 'Bearer {0}'.format(config.api_key) }
-request  = Request('GET', to_url(origin, resource), headers=headers).prepare()
 
 with Session() as session:
     response = session.send(request)
