@@ -1,15 +1,16 @@
 from collections import namedtuple
 
 
-class Config(namedtuple('Config', ['origin', 'api_key'])):
+class Config(namedtuple('Config', ['origin', 'api_key', 'maybe_logger'])):
     """Configuration for interacting with SLS API."""
 
     __slots__ = ()
 
-    def __new__(cls, origin, api_key):
-        return super(Config, cls).__new__(cls, origin, api_key)
+    def __new__(cls, origin, api_key, maybe_logger=None):
+        return super(Config, cls).__new__(cls, origin, api_key,
+                                          maybe_logger=None)
 
 
-def mk(origin, api_key):
-    return Config(origin, api_key)
+def mk(origin, api_key, maybe_config=None):
+    return Config(origin, api_key, maybe_config)
 

@@ -2,8 +2,7 @@ import re
 
 from collections import namedtuple
 from requests import Request, Response, Session
-from urllib.parse import urlencode, parse_qs
-from urllib3.util.url import parse_url
+from urllib.parse import urlencode
 
 
 PATT_FILTER_QP = re.compile('^filter\[(.*)\]$')
@@ -27,7 +26,7 @@ class Origin(namedtuple('Origin', ['scheme', 'host', 'script_name',
 
     def __new__(cls, scheme, host, script_name, maybe_port=None):
         return super(Origin, cls).__new__(cls, scheme, host, script_name,
-                                          maybe_port=None)
+                                          maybe_port)
 
     def __str__(self):
         if self.maybe_port is None:
@@ -38,9 +37,9 @@ class Origin(namedtuple('Origin', ['scheme', 'host', 'script_name',
                                              self.maybe_port, self.script_name)
 
 
-class Document(namedtuple('Document', ['name', 'maybe_identifier'])):
+class Path(namedtuple('Path', ['name', 'maybe_identifier'])):
     """
-    Description of 'document' part of SLS API URL.
+    Description of 'path' part of SLS API URL.
 
     Given a url path:
       /matches/1234?query=something
@@ -52,10 +51,11 @@ class Document(namedtuple('Document', ['name', 'maybe_identifier'])):
     __slots__ = ()
 
     def __new__(cls, name, identifier=None):
-        return super(Document, cls).__new__(cls, name, identifier)
+        return super(Path, cls).__new__(cls, name, identifier)
 
     def __str__(self):
-        components = filter(None, [self.name, self.maybe_identifier])
+        components = list(filter(None, [self.name, self.maybe_identifier]))
+
         if components:
             return '/{0}'.format('/'.join(components))
         else:
@@ -71,7 +71,7 @@ class Query(namedtuple('Query', ['dict_filters', 'dict_pagination',
       /matches?filter[playerName]=hi&sort=time&page[offset]=5
 
     This data structure contains state describing:
-      ?filter[playerName]=hi&sort=time&page[offset]=5
+      filter[playerName]=hi&sort=time&page[offset]=5
     """
 
     __slots__ = ()
@@ -83,32 +83,7 @@ class Query(namedtuple('Query', ['dict_filters', 'dict_pagination',
     def __str__(self):
         boxed = box_params(self.dict_filters, self.dict_pagination,
                            self.maybe_sort)
-        return '?{0}'.format(urlencode(boxed)) if boxed else ''
-
-
-class Resource(namedtuple('Resource', ['document', 'maybe_query'])):
-    """
-    Description of 'resource' part of SLS API URL.
-
-    Given a url path:
-      /matches?filter[playerName]=hi&sort=time&page[offset]=5
-
-    This data structure contains state describing:
-      /matches?filter[playerName]=hi&sort=time&page[offset]=5
-    """
-
-    __slots__ = ()
-
-    def __new__(cls, document, maybe_query=None):
-        return super(Resource, cls).__new__(cls, document, maybe_query)
-
-    def __str__(self):
-        if self.maybe_query is None:
-            query = Query({}, {})
-        else:
-            query = self.maybe_query
-
-        return '{0}{1}'.format(self.document, query)
+        return '?{0}'.format(urlencode(boxed))
 
 
 def box_params(dict_filters, dict_pagination, maybe_sort=None):
@@ -130,53 +105,47 @@ def box_params(dict_filters, dict_pagination, maybe_sort=None):
     return boxed
 
 
-def to_origin(head):
-    url = parse_url(head)
-    return Origin(url.scheme, url.host, url.path, maybe_port=url.port)
-
-
 def unbox_params(src, expr):
     relevant = {}
 
     for key, value in src.items():
         match = expr.match(key)
         if match is not None:
-            relevant[match.group(1)] = value[0]
+            relevant[match.group(1)] = value
 
     return relevant
 
 
-def derive_query(parsed_qs):
-    if 'sort' in parsed_qs:
-        return Query(unbox_params(parsed_qs, PATT_FILTER_QP),
-                     unbox_params(parsed_qs, PATT_PAGE_QP),
-                     parsed_qs.get('sort')[0])
-    else:
-        return Query(unbox_params(parsed_qs, PATT_FILTER_QP),
-                     unbox_params(parsed_qs, PATT_PAGE_QP),
-                     None)
+def mk_origin(scheme, host, path, maybe_port=None):
+    return Origin(scheme, host, path, maybe_port)
 
 
-def to_resource(tail):
-    """Convert SLS API path to Resource type instance."""
-
-    components = tail.split('?')
-    path_info  = components[0]
-
-    try:
-        maybe_query = components[1]
-    except IndexError:
-        maybe_query = None
-
+def mk_path(path_info):
     path_info_components = path_info.split('/')[1:]
 
     if len(path_info_components) not in [1, 2]:
-        msg = 'path has undiscernable document: {0}'.format(path)
+        msg = 'resource has indiscernable path: {0}'.format(path_info)
         raise RuntimeError(msg)
 
-    if maybe_query is None:
-        return Resource(Document(*path_info_components))
-    else:
-        return Resource(Document(*path_info_components),
-                        derive_query(parse_qs(maybe_query)))
+    return Path(*path_info_components)
+
+
+def mk_query(dict_query):
+    normalized = {}
+
+    for key, value in dict_query.items():
+        if type(value) is list:
+            normalized[key] = ','.join(value)
+        else:
+            normalized[key] = value
+
+    return Query(unbox_params(normalized, PATT_FILTER_QP),
+                 unbox_params(normalized, PATT_PAGE_QP),
+                 dict_query.get('sort', None))
+
+
+def to_url(origin, path, maybe_query=None):
+    components = filter(None, [origin, path, maybe_query])
+
+    return ''.join(map(lambda c: str(c), components))
 
