@@ -16,8 +16,8 @@ At a high level, this library provides:
 **The core parsing functionality is well-tested, but the toolkit may have some
 bugs.**
 
-Developed exclusively on Python 3.6. Compatibility with other versions to be
-investigated later.
+Compatible with Python 3.6+. Will investigate earlier version compatibility
+if requested--shouldn't be too hard, in fact.
 
 
 ## Installing
