@@ -34,18 +34,7 @@ class Data(namedtuple('Data', ['either_entries_or_maybe_entry'])):
                                         either_entries_or_maybe_entry)
 
 
-def mk_entries(obj, config):
-    entries = []
-
-    for obj_entry in obj:
-        entries.append(mk_entry(obj_entry, config))
-
-    return Entries(entries)
-
-
 def mk_entry(obj, config):
-    maybe_meta = mk_meta(obj['meta'], config) if 'meta' in obj else None
-
     resource_id = resource_identifier.mk(obj, config)
 
     if 'attributes' in obj or 'relationships' in obj or 'links' in obj:
@@ -54,11 +43,17 @@ def mk_entry(obj, config):
         return Entry(resource_id)
 
 
+def mk_entries(obj, config):
+    list_entries = [mk_entry(obj_entry, config) for obj_entry in obj]
+
+    return Entries(list_entries)
+
+
 def mk(obj, config):
     if type(obj) is list:
         value = mk_entries(obj, config)
     else:
-        if obj:
+        if obj is not None:
             value = mk_entry(obj, config)
         else:
             value = None

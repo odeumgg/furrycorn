@@ -2,7 +2,7 @@ import simplejson
 
 from requests import Request, Session
 
-from furrycorn.v1_0 import toolkit
+from furrycorn.v1_0 import model, toolkit
 
 
 class Fetch:
@@ -30,7 +30,8 @@ class Fetch:
         else:
             response = maybe_session.send(request)
 
-        callback(toolkit.process(response.json()))
+        root = model.build(response.json(), self.config)
+        callback(toolkit.process(root))
 
         return None
 

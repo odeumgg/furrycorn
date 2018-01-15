@@ -1,40 +1,23 @@
-from .directory import Directory
-from . import document as doc
-from .. import config
-from .. import model
-from ..model.data import Data, Entry, Entries
-from ..model.errors import Errors
-from ..model.common.meta import Meta
+from furrycorn.v1_0.model import data, errors
+from furrycorn.v1_0.model.common import meta
+from furrycorn.v1_0.toolkit import document
 
 
-def process(obj, maybe_config=None):
-    _config = maybe_config or config.mk(config.Mode.LENIENT)
-    root    = model.build(obj, _config)
+def process(root):
+    if type(root.primary) is data.Data:
+        _data, _, maybe_meta, maybe_jsonapi, maybe_links, maybe_included = root
+        return document.mk_data(_data, maybe_meta, maybe_jsonapi, maybe_links,
+                                maybe_included)
 
-    any_data_or_errors_or_meta, maybe_either_data_or_errors, maybe_meta, \
-        maybe_jsonapi, maybe_links, maybe_included = root
+    if type(root.primary) is errors.Errors:
+        _errors, _, maybe_meta, maybe_jsonapi, maybe_links, _ = root
+        return document.mk_errors(_errors, maybe_meta, maybe_jsonapi,
+                                  maybe_links)
 
-    if type(any_data_or_errors_or_meta) is Data:
-        _directory = Directory(any_data_or_errors_or_meta, maybe_included)
+    if type(root.primary) is meta.Meta:
+        _meta, _, _,  maybe_jsonapi, maybe_links, _ = root
+        return document.mk_meta(_meta, maybe_jsonapi, maybe_links)
 
-        either_entries_or_maybe_entry, = any_data_or_errors_or_meta
-        if type(either_entries_or_maybe_entry) is Entries:
-            return doc.Data(_directory, doc.DataCardinality.MANY,
-                            any_data_or_errors_or_meta, maybe_meta,
-                            maybe_jsonapi, maybe_links)
-        elif type(either_entries_or_maybe_entry) in [Entry, type(None)]:
-            return doc.Data(_directory, doc.DataCardinality.MAYBE_ONE,
-                            any_data_or_errors_or_meta, maybe_meta,
-                            maybe_jsonapi, maybe_links)
-        else:
-            msg = 'insanity: {0}'.format(str(either_entries_or_maybe_entry))
-            raise RuntimeError(msg)
-    elif type(any_data_or_errors_or_meta) is Errors:
-        return doc.Errors(any_data_or_errors_or_meta, maybe_meta,
-                          maybe_jsonapi, maybe_links)
-    elif type(any_data_or_errors_or_meta) is Meta:
-        return doc.Meta(any_data_or_errors_or_meta, maybe_jsonapi, maybe_links)
-    else:
-        msg = 'insanity: {0}'.format(any_data_or_errors_or_meta)
-        raise RuntimeError(msg)
+    msg = 'insanity: {0}'.format(str(root.primary))
+    raise RuntimeError(msg)
 

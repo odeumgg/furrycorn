@@ -10,7 +10,7 @@ class ToOneLinks(namedtuple('ToOneLinks', ['maybe_self', 'maybe_related'])):
 
     __slots__ = ()
 
-    def __new__(cls, pagination, maybe_self=None, maybe_related=None):
+    def __new__(cls, maybe_self=None, maybe_related=None):
         return super(ToOneLinks, cls).__new__(cls, maybe_self, maybe_related)
 
 
@@ -81,22 +81,26 @@ class Relationships(namedtuple('Relationships', ['dict_relationships'])):
         return super(Relationships, cls).__new__(cls, dict_relationships)
 
 
-def mk_data(obj, config):
+def mk_single_data(obj, config):
     if type(obj) is list:
-        list_resource_ids = []
+        list_rid = [resource_identifier.mk(obj_rid, config) for obj_rid in obj]
+        return Data(ToMany(list_rid))
 
-        for obj_resource_id in obj:
-            resource_id = resource_identifier.mk(obj_resource_id, config)
-            list_resource_ids.append(resource_id)
-
-        return Data(ToMany(list_resource_ids))
-    elif type(obj) is dict:
+    if type(obj) is dict:
         return Data(ToOne(resource_identifier.mk(obj, config)))
-    elif not obj:
+
+    if not obj:
         return Data(ToOne(None))
 
     msg = "relationships['data'] is unintelligible: {0}".format(str(obj))
     raise RuntimeError(msg)
+
+
+def mk_single_maybe_data(obj, config):
+    if 'data' in obj:
+        return mk_single_data(obj['data'], config)
+    else:
+        return None
 
 
 def mk_to_one_links(obj, config):
@@ -107,53 +111,54 @@ def mk_to_one_links(obj, config):
 
 
 def mk_to_many_links(obj, config):
-    pagination    = pagination.mk(obj, config)
+    _pagination   = pagination.mk(obj, config)
     maybe_self    = obj.get(   'self', None)
     maybe_related = obj.get('related', None)
 
-    return ToManyLinks(pagination, maybe_self, maybe_related)
+    return ToManyLinks(_pagination, maybe_self, maybe_related)
+
+
+def mk_single_maybe_links(maybe_data, obj, config):
+    if 'links' in obj:
+        obj_links = obj['links']
+
+        if type(maybe_data.either_to_many_or_to_one) in [ToOne, type(None)]:
+            return mk_to_one_links(obj_links, config)
+
+        if type(maybe_data.either_to_many_or_to_one) is ToMany:
+            return mk_to_many_links(obj_links, config)
+
+        raise RuntimeError('insanity: {0}'.format(str(maybe_data)))
+    else:
+        return None
+
+
+def mk_single_maybe_meta(obj, config):
+    if 'meta' in obj:
+        return meta.mk(obj['meta'], config)
+    else:
+        return None
+
+
+def mk_single(name, obj, config):
+    maybe_data  = mk_single_maybe_data(obj, config)
+    maybe_links = mk_single_maybe_links(maybe_data, obj, config)
+    maybe_meta  = mk_single_maybe_meta(obj, config)
+
+    any_data_or_links_or_meta = maybe_data or maybe_links or maybe_meta
+
+    return Relationship(name, any_data_or_links_or_meta, maybe_data,
+                        maybe_links, maybe_meta)
 
 
 def mk(obj, config):
     dict_relationships = {}
 
     for name, obj_relationship in obj.items():
-        if 'data' not in obj_relationship and 'links' not in obj_relationship and \
-           'meta' not in obj_relationship:
-            msg = 'relationships must contain data, links, or meta (1)'
-            raise RuntimeError(msg)
+        relationship = mk_single(name, obj_relationship, config)
 
-        if 'data' in obj_relationship:
-            maybe_data = mk_data(obj_relationship['data'], config)
-        else:
-            maybe_data = None
-
-        if 'links' in obj_relationship:
-            if type(maybe_data) in [ToOne, type(None)]:
-                maybe_either_to_one_links_or_to_many_links = \
-                    mk_to_one_links(obj_relationship['links'], config)
-            elif type(maybe_data) is ToMany:
-                maybe_either_to_one_links_or_to_many_links = \
-                    mk_to_many_links(obj_relationship['links'], config)
-            else:
-                raise RuntimeError('insanity: {0}'.format(str(maybe_data)))
-        else:
-            maybe_either_to_one_links_or_to_many_links = None
-
-        if 'meta' in obj_relationship:
-            maybe_meta = meta.mk(obj_relationship['meta'], config)
-        else:
-            maybe_meta = None
-
-        any_data_or_links_or_meta = maybe_data or maybe_links or maybe_meta
-
-        if not any_data_or_links_or_meta:
-            raise RuntimeError('response must contain data, links, or meta (2)')
-
-        relationship = Relationship(name, any_data_or_links_or_meta,
-                                    maybe_data,
-                                    maybe_either_to_one_links_or_to_many_links,
-                                    maybe_meta)
+        if not relationship.any_data_or_links_or_meta:
+            raise RuntimeError('response must contain data, links, or meta')
 
         dict_relationships[name] = relationship
 

@@ -12,6 +12,13 @@ class Meta(namedtuple('Meta', ['dict_attrs'])):
         return super(Meta, cls).__new__(cls, dict_attrs)
 
 
+def mk_maybe(obj, config):
+    if 'meta' in obj:
+        return Meta(obj['meta'])
+    else:
+        return None
+
+
 def mk(obj, config):
     return Meta(obj)
 

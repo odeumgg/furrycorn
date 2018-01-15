@@ -26,13 +26,15 @@ def process_data(data):
 
     if type(either_entries_or_maybe_entry) is Entries:
         return entries_to_list(either_entries_or_maybe_entry)
-    elif type(either_entries_or_maybe_entry) is Entry:
+
+    if type(either_entries_or_maybe_entry) is Entry:
         return entry_to_list(either_entries_or_maybe_entry)
-    elif either_entries_or_maybe_entry is None:
+
+    if either_entries_or_maybe_entry is None:
         return []
-    else:
-        msg = 'insanity: {0}'.format(str(either_entries_or_maybe_entry))
-        raise RuntimeError(msg)
+
+    msg = 'insanity: {0}'.format(str(either_entries_or_maybe_entry))
+    raise RuntimeError(msg)
 
 
 def entry_contains_resource(entry):
@@ -40,11 +42,12 @@ def entry_contains_resource(entry):
 
     if type(either_resource_or_resource_id) is Resource:
         return True
-    elif type(either_resource_or_resource_id) is ResourceId:
+
+    if type(either_resource_or_resource_id) is ResourceId:
         return False
-    else:
-        msg = 'insanity: {0}'.format(str(either_resource_or_resource_id))
-        raise RuntimeError(msg)
+
+    msg = 'insanity: {0}'.format(str(either_resource_or_resource_id))
+    raise RuntimeError(msg)
 
 
 def find_data_resources(list_entries):
@@ -56,10 +59,11 @@ def process_maybe_included(maybe_included=None):
     if type(maybe_included) is Included:
         list_resources, = maybe_included
         return list_resources
-    elif maybe_included is None:
+
+    if maybe_included is None:
         return []
-    else:
-        raise RuntimeError('insanity: {0}'.format(str(maybe_included)))
+
+    raise RuntimeError('insanity: {0}'.format(str(maybe_included)))
 
 
 class Directory:
@@ -104,4 +108,8 @@ class Directory:
                 list(filter(_fetch_all_of_type, self._resources.values()))
 
             return self._cache_by_type[_type]
+
+
+def mk(data, maybe_included=None):
+    return Directory(data, maybe_included)
 
